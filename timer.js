@@ -6,47 +6,43 @@ document.addEventListener("DOMContentLoaded", () => {
     const resetButton = document.getElementById("reset");
 
     const phases = [9 * 60, 1 * 60, 9 * 60]; // 9 min + 1 min + 9 min
-    const phaseNames = ["9-Min Presentation", "1-Min Margin", "9-Min Q&A"];
+    const phaseNames = ["First 9-Min Phase", "1-Min Break", "Final 9-Min Phase"];
     let currentPhase = 0;
-    let timeLeft = phases[currentPhase];
+    let startTime;
+    let endTime;
     let timerRunning = false;
     let timerInterval;
-    let lastTimestamp;
 
     function updateDisplay() {
-        const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
-        const secs = String(timeLeft % 60).padStart(2, "0");
+        const now = Date.now();
+        const remaining = Math.max(0, Math.round((endTime - now) / 1000));
+        const mins = String(Math.floor(remaining / 60)).padStart(2, "0");
+        const secs = String(remaining % 60).padStart(2, "0");
         timerDisplay.textContent = `${mins}:${secs}`;
         phaseDisplay.textContent = phaseNames[currentPhase];
+        
+        if (remaining <= 0) {
+            nextPhase();
+        } else {
+            requestAnimationFrame(updateDisplay); // More accurate than setInterval
+        }
     }
 
     function startTimer() {
         if (!timerRunning) {
             timerRunning = true;
-            lastTimestamp = Date.now();
-            timerInterval = setInterval(() => {
-                const now = Date.now();
-                const elapsed = Math.floor((now - lastTimestamp) / 1000);
-                if (elapsed > 0) {
-                    timeLeft -= elapsed;
-                    lastTimestamp = now;
-                    updateDisplay();
-                }
-                if (timeLeft <= 0) {
-                    nextPhase();
-                }
-            }, 500);
+            startTime = Date.now();
+            endTime = startTime + phases[currentPhase] * 1000;
+            updateDisplay(); // Use requestAnimationFrame for accuracy
         }
     }
 
     function nextPhase() {
-        clearInterval(timerInterval);
         if (currentPhase < phases.length - 1) {
             currentPhase++;
-            timeLeft = phases[currentPhase];
+            startTime = Date.now();
+            endTime = startTime + phases[currentPhase] * 1000;
             updateDisplay();
-            timerRunning = false;
-            startTimer();
         } else {
             timerRunning = false;
             timerDisplay.textContent = "DONE! ⏰";
@@ -56,20 +52,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function skipPhase() {
         if (timerRunning && currentPhase < phases.length - 1) {
-            clearInterval(timerInterval);
             currentPhase++;
-            timeLeft = phases[currentPhase];
+            startTime = Date.now();
+            endTime = startTime + phases[currentPhase] * 1000;
             updateDisplay();
-            timerRunning = false;
-            startTimer();
         }
     }
 
     function resetTimer() {
-        clearInterval(timerInterval);
         timerRunning = false;
         currentPhase = 0;
-        timeLeft = phases[currentPhase];
+        startTime = Date.now();
+        endTime = startTime + phases[currentPhase] * 1000;
         updateDisplay();
     }
 
