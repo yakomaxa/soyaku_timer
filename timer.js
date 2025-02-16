@@ -4,12 +4,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const startButton = document.getElementById("start");
     const skipButton = document.getElementById("skip");
     const resetButton = document.getElementById("reset");
+
     const phases = [9 * 60, 1 * 60, 9 * 60]; // 9 min + 1 min + 9 min
     const phaseNames = ["9-Min Presentation", "1-Min Margin", "9-Min Q&A"];
     let currentPhase = 0;
     let timeLeft = phases[currentPhase];
     let timerRunning = false;
     let timerInterval;
+    let lastTimestamp;
 
     function updateDisplay() {
         const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
@@ -21,14 +23,19 @@ document.addEventListener("DOMContentLoaded", () => {
     function startTimer() {
         if (!timerRunning) {
             timerRunning = true;
+            lastTimestamp = Date.now();
             timerInterval = setInterval(() => {
-                if (timeLeft > 0) {
-                    timeLeft--;
+                const now = Date.now();
+                const elapsed = Math.floor((now - lastTimestamp) / 1000);
+                if (elapsed > 0) {
+                    timeLeft -= elapsed;
+                    lastTimestamp = now;
                     updateDisplay();
-                } else {
+                }
+                if (timeLeft <= 0) {
                     nextPhase();
                 }
-            }, 1000);
+            }, 500);
         }
     }
 
@@ -72,3 +79,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateDisplay();
 });
+
