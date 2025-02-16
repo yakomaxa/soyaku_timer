@@ -1,2 +1,2 @@
 # soyaku_timer
-soyaku timer
+simple soyaku timer
